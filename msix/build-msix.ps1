@@ -124,12 +124,24 @@ Copy-Item (Join-Path $MsixDir 'Assets') (Join-Path $Stage 'Assets') -Recurse
 
 # --------------------------------------------------------------- manifest ---
 
-$manifest = Get-Content (Join-Path $MsixDir 'AppxManifest.xml') -Raw
+# Edit the XML rather than substituting placeholder strings. String matching
+# silently does nothing once a placeholder is renamed, and the result is a
+# package that builds fine and is then rejected on upload.
+$doc = New-Object System.Xml.XmlDocument
+$doc.PreserveWhitespace = $true
+$doc.Load((Join-Path $MsixDir 'AppxManifest.xml'))
+
 if ($identity) {
-    $manifest = $manifest.Replace('PUBLISHER-ID.folio', $identity.name)
-    $manifest = $manifest.Replace('CN=REPLACE-WITH-YOUR-PARTNER-CENTER-PUBLISHER-ID', $identity.publisher)
-    $manifest = $manifest.Replace('REPLACE-WITH-YOUR-PUBLISHER-DISPLAY-NAME', $identity.publisherDisplayName)
-    $manifest = $manifest.Replace('Version="1.0.0.0"', "Version=`"$($identity.version)`"")
+    $doc.Package.Identity.Name = [string]$identity.name
+    $doc.Package.Identity.Publisher = [string]$identity.publisher
+    $doc.Package.Identity.Version = [string]$identity.version
+    $doc.Package.Properties.PublisherDisplayName = [string]$identity.publisherDisplayName
+}
+$manifest = $doc.OuterXml
+
+# Fail loudly rather than shipping a package Partner Center will bounce.
+if ($identity -and $manifest -match 'REPLACE-WITH|PUBLISHER-ID\.') {
+    throw "identity substitution failed - the manifest still contains placeholders"
 }
 $manifestPath = Join-Path $Stage 'AppxManifest.xml'
 [System.IO.File]::WriteAllText($manifestPath, $manifest, (New-Object System.Text.UTF8Encoding $false))

@@ -41,12 +41,17 @@ public class Win32 {
     // misaligned and the wrong size.
     [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr h, int cmd);
+    [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr h, IntPtr after, int x, int y, int w, int t, uint flags);
     [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr h,int x,int y,int w,int t,bool r);
     [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
     [DllImport("user32.dll")] public static extern bool SetCursorPos(int x,int y);
     [DllImport("user32.dll")] public static extern void mouse_event(uint f,uint x,uint y,uint d,int e);
     public struct RECT { public int Left, Top, Right, Bottom; }
     public const uint LEFTDOWN = 0x02, LEFTUP = 0x04;
+    public const int RESTORE = 9;
+    public static readonly IntPtr TOPMOST = new IntPtr(-1), NOTOPMOST = new IntPtr(-2);
+    public const uint NOMOVE = 0x0002, NOSIZE = 0x0001;
 }
 "@
 }
@@ -63,8 +68,13 @@ if ($Position) {
     Start-Sleep -Milliseconds 700
 }
 
+# Windows often refuses SetForegroundWindow from a background process, which
+# leaves whatever is on top being captured instead. Pinning the window topmost
+# for the duration is the reliable way to get it in front.
+[Win32]::ShowWindow($hwnd, [Win32]::RESTORE) | Out-Null
+[Win32]::SetWindowPos($hwnd, [Win32]::TOPMOST, 0, 0, 0, 0, [Win32]::NOMOVE -bor [Win32]::NOSIZE) | Out-Null
 [Win32]::SetForegroundWindow($hwnd) | Out-Null
-Start-Sleep -Milliseconds 300
+Start-Sleep -Milliseconds 500
 
 $rect = New-Object Win32+RECT
 [Win32]::GetWindowRect($hwnd, [ref]$rect) | Out-Null

@@ -29,7 +29,7 @@ Every PDF tool you need, running entirely on your own computer. Merge, split, co
 ```
 folio does everything you need with a PDF, entirely on your own computer.
 
-Most free PDF tools are websites. You upload a contract, a payslip, a passport scan - to a server you know nothing about, run by a company whose business model you cannot see. folio never does that, because it cannot: there is no networking code in the app at all.
+Most free PDF tools are websites. You upload a contract, a payslip, a passport scan - to a server you know nothing about, run by a company whose business model you cannot see. folio never does that, because it cannot: the Store package declares no network capabilities, so Windows itself refuses this app any access to the network.
 
 WHAT IT DOES
 
@@ -58,7 +58,7 @@ Everything else
 
 WHY IT IS DIFFERENT
 
-It is genuinely offline. Not "we don't sell your data" - there is no code in this application capable of making a network request. It works with the network cable unplugged, on an air-gapped machine, forever. The Store package declares no network capabilities at all, which you can verify yourself.
+It is genuinely offline. Not "we don't sell your data" - the Store package declares no network capabilities at all, so Windows itself refuses this app any network access. It works with the network cable unplugged, on an air-gapped machine, forever. folio's own code contains no networking whatsoever, and the build fails if any is ever added.
 
 It is genuinely free. Every feature, for everyone, including businesses, with no user limit, no trial, no watermark on your output, no locked "pro" tier and no nagging. There is nothing to upgrade to.
 

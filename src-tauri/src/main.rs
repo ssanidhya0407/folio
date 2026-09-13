@@ -115,10 +115,11 @@ fn page_count(path: String) -> Result<usize, String> {
 }
 
 /// Render up to `max_pages` pages as base64 PNG data URLs at `width` px wide,
-/// for the in-app PDF viewer.
+/// for the in-app PDF viewer. The UI asks for the display's real pixel width,
+/// so the upper bound has to leave room for a 2x HiDPI screen.
 #[tauri::command]
 fn render_view(path: String, max_pages: usize, width: u32) -> Result<Vec<String>, String> {
-    let pngs = pdf_core::render_thumbnails(&path, max_pages, width.clamp(80, 1600))
+    let pngs = pdf_core::render_thumbnails(&path, max_pages, width.clamp(80, 3000))
         .map_err(|e| e.to_string())?;
     let engine = base64::engine::general_purpose::STANDARD;
     Ok(pngs

@@ -9,8 +9,14 @@ const toastEl = document.getElementById("toast");
 const dragOverlay = document.getElementById("drag-overlay");
 const searchEl = document.getElementById("tool-search");
 
-const VIEW_W = 820; // px width pages are rendered at
+const VIEW_W = 820; // CSS px the page is laid out at
 const VIEW_MAX = 40; // pages rendered for preview
+
+// A page is rasterized once, so it has to be rendered at the display's real
+// pixel density or it gets upscaled and looks soft. Capped at 2x: beyond that
+// the memory cost of holding 40 page bitmaps outweighs the visible gain.
+const PIXEL_RATIO = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
+const RENDER_W = Math.round(VIEW_W * PIXEL_RATIO);
 
 // ---------- icons ----------
 const I = {
@@ -164,7 +170,7 @@ async function setActive(i) {
   renderViewer();
   const path = S.files[i].path;
   try {
-    S.pages = await invoke("render_view", { path, maxPages: VIEW_MAX, width: VIEW_W });
+    S.pages = await invoke("render_view", { path, maxPages: VIEW_MAX, width: RENDER_W });
   } catch (e) {
     S.pages = [];
     toast("Could not render preview.", "err");
@@ -485,7 +491,7 @@ function renderOrganize(head) {
     toolsBody.innerHTML = head + `<div class="busy"><div class="spinner"></div>Loading pages…</div>`;
     wireBack();
     const cap = Math.max(1, f.pages || 300);
-    invoke("render_view", { path: f.path, maxPages: cap, width: 240 })
+    invoke("render_view", { path: f.path, maxPages: cap, width: Math.round(240 * PIXEL_RATIO) })
       .then((thumbs) => {
         if (S.tool !== "organize" || S.orgFor !== f.path) return;
         S.orgThumbs = thumbs;
@@ -1061,7 +1067,7 @@ function renderRedact(head) {
     toolsBody.innerHTML = head + `<div class="busy"><div class="spinner"></div>Loading pages…</div>`;
     wireBack();
     const cap = Math.max(1, f.pages || 300);
-    invoke("render_view", { path: f.path, maxPages: cap, width: 700 })
+    invoke("render_view", { path: f.path, maxPages: cap, width: Math.round(700 * PIXEL_RATIO) })
       .then((pages) => { if (S.tool === "redact" && S.redFor === f.path) { S.redPages = pages; renderToolPanel(); } })
       .catch(() => { if (S.tool === "redact" && S.redFor === f.path) { S.redPages = []; renderToolPanel(); } });
     return;

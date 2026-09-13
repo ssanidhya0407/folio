@@ -71,6 +71,12 @@ which makes network requests:
 
 No third party receives any data from folio.
 
+For completeness: the Windows build of Tesseract links the `libcurl` library
+and will not start without it, so that library is present in the package.
+folio only ever passes Tesseract local file paths, and the Store package's lack
+of network capabilities means Windows blocks network access for everything in
+it regardless.
+
 ## Children
 
 folio is safe for all ages. It collects nothing, shows no advertising and

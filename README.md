@@ -22,8 +22,10 @@ Most free PDF tools are websites. You upload a contract, a payslip, a passport
 scan — to a server you know nothing about, run by a company whose business model
 you cannot see.
 
-folio never does that, because **it cannot**. There is no networking code in the
-app at all, and the build fails if any ever gets added.
+folio never does that, because **it cannot**. There is no networking code in
+folio itself, the build fails if any ever gets added, and the Store package
+declares no network capabilities — so Windows refuses the app network access
+outright.
 
 ---
 
@@ -102,6 +104,15 @@ operating system regardless of what the code does.
 
 **3. Just unplug the network.**
 folio works identically air-gapped. Every feature, every time.
+
+**One caveat, stated plainly.** The bundled OCR engine (Tesseract) links
+`libcurl`, because the official Windows build of Tesseract does — it will not
+start without it. folio only ever hands Tesseract local file paths and never
+uses any URL feature, and in the Store build Windows blocks network access for
+the whole package regardless. But the library is in the package, so "no
+networking code anywhere in the download" would be the wrong claim to make.
+`deny.toml` governs folio's Rust dependencies; it cannot inspect a third-party
+binary.
 
 </details>
 

@@ -20,6 +20,7 @@ import argparse
 import io
 import json
 import shutil
+import struct
 import subprocess
 import sys
 import tarfile
@@ -42,6 +43,11 @@ TESSERACT_RELEASE = "https://api.github.com/repos/tesseract-ocr/tesseract/releas
 # `tessdata_fast` is the size/accuracy compromise meant for end users; the
 # `_best` models are several times larger for a marginal accuracy gain.
 TESSDATA_URL = "https://github.com/tesseract-ocr/tessdata_fast/raw/main/{lang}.traineddata"
+
+# Tesseract writes a searchable PDF by laying invisible text over the page
+# image, which needs a glyph-less font to do it with. The copy in the tessdata
+# repo is a symlink, so take the real one from tessconfigs.
+PDF_FONT_URL = "https://github.com/tesseract-ocr/tessconfigs/raw/main/pdf.ttf"
 
 
 def get(url: str) -> bytes:
@@ -101,6 +107,16 @@ def fetch_tessdata(langs) -> None:
         (TESSDATA / f"{lang}.traineddata").write_bytes(data)
         print(f"  -> tessdata/{lang}.traineddata")
 
+    # Without these two, tesseract runs, recognizes the text, and then fails to
+    # emit a PDF with only "read_params_file: Can't open pdf" to explain why.
+    configs = TESSDATA / "configs"
+    configs.mkdir(exist_ok=True)
+    (configs / "pdf").write_text("tessedit_create_pdf 1\n", encoding="ascii")
+    print("  -> tessdata/configs/pdf")
+
+    (TESSDATA / "pdf.ttf").write_bytes(get(PDF_FONT_URL))
+    print("  -> tessdata/pdf.ttf")
+
 
 def fetch_tesseract() -> None:
     """Install the Tesseract engine into `runtime/`.
@@ -158,6 +174,87 @@ def fetch_tesseract() -> None:
     print("  -> tesseract.exe + libraries")
 
 
+# ---------------------------------------------------------------- pruning ---
+
+# The only binaries folio actually invokes. Everything else in `runtime/` is
+# kept only if one of these links against it.
+ENTRY_POINTS = ("tesseract.exe", "qpdf.exe", "pdfium.dll")
+
+
+def dll_imports(path: Path):
+    """DLL names in a PE file's import table.
+
+    Tesseract's installer drops ~80 files, most of them training tools and the
+    Pango/Cairo/ICU stack that only `text2image` needs. Reading the import
+    table lets us keep exactly what is reachable and delete the rest, instead
+    of guessing from filenames.
+    """
+    data = path.read_bytes()
+    try:
+        pe = struct.unpack_from("<I", data, 0x3C)[0]
+        if data[pe:pe + 4] != b"PE\0\0":
+            return []
+        sections = struct.unpack_from("<H", data, pe + 6)[0]
+        opt_size = struct.unpack_from("<H", data, pe + 20)[0]
+        magic = struct.unpack_from("<H", data, pe + 24)[0]
+        directory = pe + 24 + (112 if magic == 0x20B else 96)
+        import_rva = struct.unpack_from("<I", data, directory + 8)[0]
+        if not import_rva:
+            return []
+
+        table = []
+        base = pe + 24 + opt_size
+        for i in range(sections):
+            _, vsize, vaddr, rsize, raw = struct.unpack_from("<8sIIII", data, base + i * 40)
+            table.append((vaddr, max(vsize, rsize), raw))
+
+        def offset_of(rva):
+            for vaddr, size, raw in table:
+                if vaddr <= rva < vaddr + size:
+                    return raw + (rva - vaddr)
+            return None
+
+        names, cursor = [], offset_of(import_rva)
+        while cursor is not None:
+            entry = data[cursor:cursor + 20]
+            if len(entry) < 20 or entry == b"\0" * 20:
+                break
+            name_rva = struct.unpack_from("<I", entry, 12)[0]
+            if not name_rva:
+                break
+            at = offset_of(name_rva)
+            if at is None:
+                break
+            names.append(data[at:data.index(b"\0", at)].decode("ascii", "ignore"))
+            cursor += 20
+        return names
+    except Exception:
+        return []
+
+
+def prune() -> None:
+    """Delete anything in `runtime/` that no entry point depends on."""
+    present = {p.name.lower(): p for p in RUNTIME.iterdir() if p.is_file()}
+    keep, queue = set(), [e for e in ENTRY_POINTS if e in present]
+
+    while queue:
+        name = queue.pop().lower()
+        if name in keep or name not in present:
+            continue
+        keep.add(name)
+        queue.extend(d for d in dll_imports(present[name]) if d.lower() in present)
+
+    removed = freed = 0
+    for name, path in present.items():
+        if name not in keep:
+            freed += path.stat().st_size
+            path.unlink()
+            removed += 1
+
+    if removed:
+        print(f"  pruned {removed} unused file(s), {freed // (1024 * 1024)} MB")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -183,6 +280,7 @@ def main() -> int:
         fetch_tessdata(args.lang)
     if args.tesseract:
         fetch_tesseract()
+        prune()
     else:
         print("\nSkipping the Tesseract engine (pass --tesseract to install it).")
         print("Without it, every tool works except OCR, which says so in the app.")
