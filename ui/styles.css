@@ -347,3 +347,13 @@ body.pg-dragging, body.pg-dragging * { cursor: grabbing !important; }
 .batch-row .bname { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .batch-row .bwhy { flex: 0 1 auto; max-width: 45%; color: var(--red); font-size: 11px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- Redaction colour swatches ---------- */
+.swatches { display: flex; align-items: center; gap: 8px; }
+.swatch { width: 26px; height: 26px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--border); box-shadow: inset 0 0 0 2px #fff; }
+.swatch.on { border-color: var(--blue); box-shadow: inset 0 0 0 2px #fff, 0 0 0 2px var(--blue-tint); }
+.swatch-custom { width: 26px; height: 26px; padding: 0; border: 1px solid var(--border);
+  border-radius: 7px; background: none; cursor: pointer; }
+.swatch-custom::-webkit-color-swatch-wrapper { padding: 2px; }
+.swatch-custom::-webkit-color-swatch { border: 0; border-radius: 5px; }

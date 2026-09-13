@@ -17,7 +17,8 @@ stream, and packages it for distribution.
 - **Redaction.** Draw boxes over a page and the glyphs, images and annotations
   underneath are deleted from the file, not covered up. Surviving text keeps
   its position. Verified by a test that reads the output back and asserts the
-  redacted string is gone.
+  redacted string is gone. The covering box is white by default and any colour
+  you like — a cosmetic choice that does not affect what is removed.
 - **OCR.** Make a scanned PDF searchable using a bundled Tesseract engine,
   entirely offline. Picks up any language you add to `tessdata/`, shows
   per-page progress, and refuses to run on a PDF that already has good text
@@ -43,7 +44,7 @@ stream, and packages it for distribution.
   privacy claim enforceable by Windows itself.
 - **`assets/fetch-runtime.py`** replaces the manual "download these DLLs by
   hand" instructions.
-- CLI: `pdfx ocr`, `pdfx redact`, `pdfx langs`.
+- CLI: `pdfx ocr`, `pdfx redact` (with `--color`), `pdfx langs`.
 - `PRIVACY.md`, for the Store's required privacy policy URL and for anyone who
   wants the claim written down.
 - A release workflow that builds all three artifacts from a tag.

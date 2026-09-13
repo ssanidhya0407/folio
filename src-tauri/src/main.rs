@@ -400,7 +400,12 @@ struct RegionDto {
 }
 
 #[tauri::command]
-fn run_redact(input: String, output: String, regions: Vec<RegionDto>) -> Result<String, String> {
+fn run_redact(
+    input: String,
+    output: String,
+    regions: Vec<RegionDto>,
+    color: Option<String>,
+) -> Result<String, String> {
     let regions: Vec<pdf_core::RedactRegion> = regions
         .into_iter()
         .map(|r| pdf_core::RedactRegion {
@@ -412,7 +417,11 @@ fn run_redact(input: String, output: String, regions: Vec<RegionDto>) -> Result<
         })
         .collect();
 
-    let stats = pdf_core::redact(&input, Path::new(&output), &regions).map_err(|e| e.to_string())?;
+    let opts = pdf_core::RedactOptions {
+        color: color.as_deref().and_then(hex_rgb).unwrap_or((1.0, 1.0, 1.0)),
+    };
+    let stats = pdf_core::redact_with(&input, Path::new(&output), &regions, &opts)
+        .map_err(|e| e.to_string())?;
 
     let mut parts = vec![format!("{} glyph(s)", stats.glyphs_removed)];
     if stats.images_removed > 0 {
@@ -426,6 +435,16 @@ fn run_redact(input: String, output: String, regions: Vec<RegionDto>) -> Result<
         parts.join(", "),
         stats.pages
     ))
+}
+
+/// `#rrggbb` -> RGB in `0.0..=1.0`. `None` when the string is not a colour.
+fn hex_rgb(spec: &str) -> Option<(f32, f32, f32)> {
+    let hex = spec.trim().trim_start_matches('#');
+    if hex.len() != 6 {
+        return None;
+    }
+    let channel = |i: usize| u8::from_str_radix(&hex[i..i + 2], 16).ok().map(|v| v as f32 / 255.0);
+    Some((channel(0)?, channel(2)?, channel(4)?))
 }
 
 // ----- About / trust -----

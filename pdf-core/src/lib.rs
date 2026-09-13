@@ -52,7 +52,7 @@ pub use ocr::{has_text, ocr, ocr_with_progress, OcrOptions, OcrStats};
 pub use pages::reorder;
 pub use pdf_to_png::{page_count, pdf_to_pngs, render_thumbnails, ImgFormat};
 pub use range::PageRange;
-pub use redact::{redact, RedactRegion, RedactStats};
+pub use redact::{redact, redact_with, RedactOptions, RedactRegion, RedactStats};
 pub use rotate::rotate;
 pub use split::{extract, split_at, split_each_page, split_every};
 pub use watermark::{watermark, WatermarkOptions};

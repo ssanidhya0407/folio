@@ -3,7 +3,7 @@
 //! Drawing a black box over text is not redaction — the text is still in the
 //! content stream, and "select all → copy" or `pdftotext` recovers it. This
 //! module walks the page's content streams, deletes the glyphs and images that
-//! fall inside each region, and only then paints the black box on top.
+//! fall inside each region, and only then paints the covering box on top.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -43,6 +43,23 @@ pub struct RedactRegion {
     pub y: f32,
     pub w: f32,
     pub h: f32,
+}
+
+/// Settings for [`redact_with`].
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct RedactOptions {
+    /// Fill colour for the box painted over each region, as RGB in `0.0..=1.0`.
+    ///
+    /// White makes a redaction read as blank space rather than an obvious bar.
+    /// It changes nothing about what is removed — the content underneath is
+    /// deleted from the file either way — only how the result looks.
+    pub color: (f32, f32, f32),
+}
+
+impl Default for RedactOptions {
+    fn default() -> Self {
+        RedactOptions { color: (1.0, 1.0, 1.0) }
+    }
 }
 
 /// What a redaction run removed.
@@ -127,7 +144,7 @@ fn transformed_bounds(m: &Matrix, x0: f64, y0: f64, x1: f64, y1: f64) -> Rect {
 // ---------------------------------------------------------------------------
 
 /// Remove every piece of page content that falls inside `regions`, then paint
-/// an opaque black box over each one.
+/// an opaque box over each one.
 ///
 /// Text and images are deleted from the content stream, and annotations
 /// (links, form fields, comments) centred in a region are dropped. Glyph
@@ -137,6 +154,16 @@ pub fn redact<P: AsRef<Path>>(
     input: P,
     output: &Path,
     regions: &[RedactRegion],
+) -> Result<RedactStats> {
+    redact_with(input, output, regions, &RedactOptions::default())
+}
+
+/// [`redact`], with control over how the covering box looks.
+pub fn redact_with<P: AsRef<Path>>(
+    input: P,
+    output: &Path,
+    regions: &[RedactRegion],
+    opts: &RedactOptions,
 ) -> Result<RedactStats> {
     if regions.is_empty() {
         return Err(PdfError::Invalid("select at least one area to redact".into()));
@@ -172,7 +199,7 @@ pub fn redact<P: AsRef<Path>>(
             .map(|r| to_user_space(r, &media, rotate))
             .collect();
 
-        rewrite_page(&mut doc, page_id, &rects, &mut stats)?;
+        rewrite_page(&mut doc, page_id, &rects, opts, &mut stats)?;
         strip_annotations(&mut doc, page_id, &rects, &mut stats);
     }
 
@@ -285,6 +312,7 @@ fn rewrite_page(
     doc: &mut Document,
     page_id: ObjectId,
     rects: &[Rect],
+    opts: &RedactOptions,
     stats: &mut RedactStats,
 ) -> Result<()> {
     let content = doc.get_page_content(page_id)?;
@@ -301,7 +329,7 @@ fn rewrite_page(
     body.extend_from_slice(b"q\n");
     body.extend_from_slice(&cleaned.bytes);
     body.extend_from_slice(b"\n");
-    body.extend_from_slice(&cover_ops(rects, cleaned.unbalanced + 1));
+    body.extend_from_slice(&cover_ops(rects, cleaned.unbalanced + 1, opts.color));
 
     let mut stream = Stream::new(Dictionary::new(), body);
     // Compression is a nicety; an uncompressed stream is still valid.
@@ -357,17 +385,24 @@ fn resource(doc: &Document, resources: &Dictionary, kind: &[u8], name: &[u8]) ->
     }
 }
 
-/// `/Contents` bytes for black boxes covering `rects`, in page user space.
+/// `/Contents` bytes for the boxes covering `rects`, in page user space.
 ///
 /// `close` is how many `Q` to emit first, to unwind the graphics stack back to
 /// the page's base state — otherwise the boxes are drawn under whatever
 /// transform the content left in force, rather than the one the rectangles
 /// were computed in.
-fn cover_ops(rects: &[Rect], close: usize) -> Vec<u8> {
+fn cover_ops(rects: &[Rect], close: usize, color: (f32, f32, f32)) -> Vec<u8> {
     let mut ops: Vec<Operation> = (0..close).map(|_| Operation::new("Q", vec![])).collect();
     ops.extend([
         Operation::new("q", vec![]),
-        Operation::new("rg", vec![0.into(), 0.into(), 0.into()]),
+        Operation::new(
+            "rg",
+            vec![
+                Object::Real(color.0.clamp(0.0, 1.0)),
+                Object::Real(color.1.clamp(0.0, 1.0)),
+                Object::Real(color.2.clamp(0.0, 1.0)),
+            ],
+        ),
     ]);
     for r in rects {
         ops.push(Operation::new(

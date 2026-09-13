@@ -126,8 +126,8 @@ Two folder paths. That is the entire extent of it. Full detail in
 
 ## ✂️ What "redact" actually means here
 
-Most editors draw a black rectangle over the text. **The text is still in the
-file**, one *select-all → copy* away. That is not redaction; it is a sticker.
+Most editors draw a rectangle over the text. **The text is still in the file**,
+one *select-all → copy* away. That is not redaction; it is a sticker.
 
 folio does the real thing:
 
@@ -136,7 +136,9 @@ folio does the real thing:
    position adjustment so surviving text does not shift.
 3. Removes image draw operations that overlap, and annotations (links, form
    fields, comments) centred in the region.
-4. *Then* paints the black box.
+4. *Then* paints the covering box — **white by default**, with black, blue,
+   grey or any custom colour a click away in the Redact panel. The colour is
+   purely cosmetic; the content underneath is gone either way.
 
 <details>
 <summary><b>The one approximation, stated honestly</b></summary>
@@ -300,7 +302,7 @@ pdfx decrypt locked.pdf -o out.pdf --password open123
 pdfx watermark in.pdf "CONFIDENTIAL" -o wm.pdf [--tiled]
 pdfx ocr scan.pdf -o searchable.pdf [-l eng] [--force]
 pdfx langs
-pdfx redact in.pdf -o clean.pdf -r "1:0.1,0.2,0.5,0.04"   # page:x,y,w,h from top-left
+pdfx redact in.pdf -o clean.pdf -r "1:0.1,0.2,0.5,0.04" [--color "#000000"]
 pdfx meta get in.pdf
 pdfx meta scrub in.pdf -o clean.pdf
 ```

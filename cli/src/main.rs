@@ -184,6 +184,10 @@ enum Command {
         /// the page (0-1) measured from the top-left. Repeatable.
         #[arg(short, long = "region", required = true, value_name = "PAGE:X,Y,W,H")]
         regions: Vec<String>,
+        /// Colour of the box painted over each area, as hex. Only affects how
+        /// the result looks; the content underneath is deleted either way.
+        #[arg(long, default_value = "#ffffff")]
+        color: String,
     },
 
     /// Read or remove document metadata.
@@ -381,9 +385,11 @@ fn run(command: Command) -> pdf_core::Result<()> {
             input,
             output,
             regions,
+            color,
         } => {
             let parsed: pdf_core::Result<Vec<_>> = regions.iter().map(|r| parse_region(r)).collect();
-            let stats = pdf_core::redact(&input, &output, &parsed?)?;
+            let opts = pdf_core::RedactOptions { color: parse_hex(&color)? };
+            let stats = pdf_core::redact_with(&input, &output, &parsed?, &opts)?;
             println!(
                 "removed {} glyph(s), {} image(s), {} annotation(s) from {} page(s) -> {}",
                 stats.glyphs_removed,
@@ -434,6 +440,21 @@ fn parse_order(spec: &str) -> pdf_core::Result<Vec<usize>> {
         return Err(pdf_core::PdfError::Invalid("empty page order".into()));
     }
     Ok(out)
+}
+
+/// Parse a `#rrggbb` (or `rrggbb`) colour into RGB components in `0.0..=1.0`.
+fn parse_hex(spec: &str) -> pdf_core::Result<(f32, f32, f32)> {
+    let hex = spec.trim().trim_start_matches('#');
+    let bad = || pdf_core::PdfError::Invalid(format!("invalid colour {spec:?} — expected #rrggbb"));
+    if hex.len() != 6 {
+        return Err(bad());
+    }
+    let channel = |i: usize| {
+        u8::from_str_radix(&hex[i..i + 2], 16)
+            .map(|v| v as f32 / 255.0)
+            .map_err(|_| bad())
+    };
+    Ok((channel(0)?, channel(2)?, channel(4)?))
 }
 
 /// Parse a redaction area written as `page:x,y,w,h`, with the geometry given
@@ -499,7 +520,7 @@ fn print_meta(m: &pdf_core::Metadata) {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_order, parse_region};
+    use super::{parse_hex, parse_order, parse_region};
 
     #[test]
     fn parses_explicit_order() {
@@ -517,6 +538,16 @@ mod tests {
         let r = parse_region("2:0.1,0.2,0.3,0.4").unwrap();
         assert_eq!(r.page, 2);
         assert_eq!((r.x, r.y, r.w, r.h), (0.1, 0.2, 0.3, 0.4));
+    }
+
+    #[test]
+    fn parses_hex_colours() {
+        assert_eq!(parse_hex("#ffffff").unwrap(), (1.0, 1.0, 1.0));
+        assert_eq!(parse_hex("000000").unwrap(), (0.0, 0.0, 0.0));
+        let (r, g, b) = parse_hex("#2b2be0").unwrap();
+        assert!((r - 43.0 / 255.0).abs() < 1e-6 && (g - 43.0 / 255.0).abs() < 1e-6 && (b - 224.0 / 255.0).abs() < 1e-6);
+        assert!(parse_hex("#fff").is_err());
+        assert!(parse_hex("#gggggg").is_err());
     }
 
     #[test]

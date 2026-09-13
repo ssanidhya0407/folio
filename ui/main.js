@@ -1034,6 +1034,15 @@ async function runOcr() {
   );
 }
 
+// Colours offered for the covering box. The choice is cosmetic — whatever you
+// pick, the content underneath is deleted from the file.
+const REDACT_COLORS = [
+  ["#ffffff", "White"],
+  ["#000000", "Black"],
+  ["#2b2be0", "Blue"],
+  ["#6b7280", "Grey"],
+];
+
 // ----- Redact: draw boxes, permanently remove what is underneath -----
 function renderRedact(head) {
   const f = S.files[S.active];
@@ -1068,9 +1077,10 @@ function renderRedact(head) {
 
   const total = S.redPages.length;
   const page = Math.min(S.redPage, total - 1);
+  const color = S.opt.color || REDACT_COLORS[0][0];
   const here = S.regions.filter((r) => r.page === page + 1);
   const boxes = here
-    .map((r) => `<div class="red-box" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%">
+    .map((r) => `<div class="red-box" style="left:${r.x * 100}%;top:${r.y * 100}%;width:${r.w * 100}%;height:${r.h * 100}%;background:${color}">
         <button class="red-x" data-drop="${S.regions.indexOf(r)}" title="Remove this box">${svg("x")}</button></div>`)
     .join("");
 
@@ -1085,6 +1095,12 @@ function renderRedact(head) {
        <img src="${S.redPages[page]}" alt="page ${page + 1}" draggable="false"/>
        <div class="red-overlay" id="red-overlay">${boxes}</div>
      </div>
+     <div class="field" style="margin-top:12px"><label>Box colour</label>
+       <div class="swatches">${REDACT_COLORS.map(([hex, name]) =>
+         `<button class="swatch ${color === hex ? "on" : ""}" data-color="${hex}" title="${name}"
+            style="background:${hex}"></button>`).join("")}
+         <input type="color" class="swatch-custom" data-color-custom value="${color}" title="Custom colour"/>
+       </div></div>
      <div class="red-count">${S.regions.length ? `<b>${S.regions.length}</b> area(s) marked${here.length ? "" : " (none on this page)"}` : "No areas marked yet."}
        ${S.regions.length ? `<button class="linkbtn" id="red-clear">Clear all</button>` : ""}</div>
      <button class="run-btn" id="run" style="margin-top:12px" ${S.regions.length ? "" : "disabled"}>Redact &amp; save</button>`;
@@ -1092,6 +1108,11 @@ function renderRedact(head) {
   document.getElementById("red-prev")?.addEventListener("click", () => { S.redPage = page - 1; renderToolPanel(); });
   document.getElementById("red-next")?.addEventListener("click", () => { S.redPage = page + 1; renderToolPanel(); });
   document.getElementById("red-clear")?.addEventListener("click", () => { S.regions = []; renderToolPanel(); });
+  toolsBody.querySelectorAll("[data-color]").forEach((b) =>
+    b.addEventListener("click", () => { S.opt.color = b.dataset.color; renderToolPanel(); }));
+  toolsBody.querySelector("[data-color-custom]")?.addEventListener("change", (e) => {
+    S.opt.color = e.target.value; renderToolPanel();
+  });
   toolsBody.querySelectorAll("[data-drop]").forEach((b) =>
     b.addEventListener("click", (e) => { e.stopPropagation(); S.regions.splice(+b.dataset.drop, 1); renderToolPanel(); }));
   document.getElementById("run")?.addEventListener("click", runRedact);
@@ -1120,6 +1141,7 @@ function wireRedactDraw(page) {
     [x0, y0] = at(ev);
     box = document.createElement("div");
     box.className = "red-box drawing";
+    box.style.borderColor = S.opt.color || REDACT_COLORS[0][0];
     overlay.appendChild(box);
   });
 
@@ -1152,7 +1174,11 @@ async function runRedact() {
   if (!f || !S.regions.length) return;
   const out = await invoke("save_pdf", { defaultName: "redacted.pdf" });
   if (!out) return;
-  await doRun("run_redact", { input: f.path, output: out, regions: S.regions }, out, "file", true);
+  await doRun(
+    "run_redact",
+    { input: f.path, output: out, regions: S.regions, color: S.opt.color || REDACT_COLORS[0][0] },
+    out, "file", true
+  );
 }
 
 // ----- Batch: one operation across every open PDF -----

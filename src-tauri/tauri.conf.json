@@ -10,7 +10,7 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "folio",
+        "title": "Folio : Local PDF Studio",
         "width": 1040,
         "height": 760,
         "minWidth": 760,
