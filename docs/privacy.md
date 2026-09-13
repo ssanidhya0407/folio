@@ -90,4 +90,4 @@ in the project's public commit history.
 ## Contact
 
 Questions about this policy can be raised as an issue on the project's public
-issue tracker.
+issue tracker: <https://github.com/ssanidhya0407/folio/issues>

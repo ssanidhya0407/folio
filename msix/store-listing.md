@@ -76,7 +76,18 @@ Windows 10 version 1809 or later, 64-bit.
 
 OPEN SOURCE
 
-Source code, issue tracker and the full licence: see the support link on this page.
+Source code, issue tracker and the full licence:
+https://github.com/ssanidhya0407/folio
+```
+
+---
+
+## Support and privacy URLs
+
+```
+Support:        https://github.com/ssanidhya0407/folio/issues
+Privacy policy: https://ssanidhya0407.github.io/folio/privacy
+Website:        https://ssanidhya0407.github.io/folio/
 ```
 
 ---
@@ -104,7 +115,7 @@ Copyright (C) 2026 folio contributors. Licensed under the GNU General Public Lic
 ## Additional licence terms
 
 ```
-This application is free software licensed under the GNU General Public License version 3 or later. The complete source code is available at the support link on this listing. You may use it for any purpose, including commercially, and there is no user limit.
+This application is free software licensed under the GNU General Public License version 3 or later. The complete source code is available at https://github.com/ssanidhya0407/folio. You may use it for any purpose, including commercially, and there is no user limit.
 ```
 
 ## Developer-assigned age rating

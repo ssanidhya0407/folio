@@ -125,14 +125,19 @@ Capture with `Win`+`Shift`+`S` or Snipping Tool, and resize the window to a
 | Markets | All |
 | Device families | Windows 10 desktop 10.0.17763.0 and later |
 | Privacy policy URL | **Required** — see below |
-| Support contact | Your GitHub Issues URL or an email |
+| Support contact | `https://github.com/ssanidhya0407/folio/issues` |
 
 ### Privacy policy URL
 
 Partner Center requires a reachable URL even though folio collects nothing.
-[`PRIVACY.md`](../PRIVACY.md) at the repo root is written for this. Publish it
-via GitHub Pages (Settings → Pages → deploy from `main`) and use the resulting
-`https://<you>.github.io/folio/privacy` URL.
+It is already published — paste this straight in:
+
+```
+https://ssanidhya0407.github.io/folio/privacy
+```
+
+It is served by GitHub Pages from `docs/`, generated from
+[`PRIVACY.md`](../PRIVACY.md) at the repo root.
 
 ### Age rating questionnaire
 
