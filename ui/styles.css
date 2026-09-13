@@ -357,3 +357,7 @@ body.pg-dragging, body.pg-dragging * { cursor: grabbing !important; }
   border-radius: 7px; background: none; cursor: pointer; }
 .swatch-custom::-webkit-color-swatch-wrapper { padding: 2px; }
 .swatch-custom::-webkit-color-swatch { border: 0; border-radius: 5px; }
+
+/* The sidebar wordmark, generated from the brand logo by assets/make-icons.py.
+   Shipped at 4x so it stays crisp on HiDPI displays. */
+.wm-logo { height: 26px; width: auto; user-select: none; -webkit-user-drag: none; }
