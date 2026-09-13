@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  folio's Microsoft Store package manifest.
+
+  Three values in <Identity> and one in <Properties> are assigned by Partner
+  Center *after* you reserve the app name, and the package will be rejected if
+  they do not match your account exactly. They are marked below, and
+  build-msix.ps1 can substitute them for you from msix/identity.json.
+
+  Note what is NOT here: no <Capability> for internetClient, privateNetwork or
+  anything else network-related. A packaged app cannot use a capability it has
+  not declared, so the Store package itself is evidence for folio's central
+  claim — it physically cannot reach the network.
+-->
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <!-- REPLACE Name and Publisher with the values from Partner Center →
+       Product → Product identity. Version must be 4 parts, and its final
+       part must be 0 for Store submissions. -->
+  <Identity
+    Name="PUBLISHER-ID.FolioLocalPDFStudio"
+    Publisher="CN=REPLACE-WITH-YOUR-PARTNER-CENTER-PUBLISHER-ID"
+    Version="1.0.0.0"
+    ProcessorArchitecture="x64" />
+
+  <Properties>
+    <DisplayName>Folio : Local PDF Studio</DisplayName>
+    <!-- REPLACE with the publisher display name shown on your Store listing. -->
+    <PublisherDisplayName>REPLACE-WITH-YOUR-PUBLISHER-DISPLAY-NAME</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+    <Description>Free, fully offline PDF tools. Merge, split, compress, protect, watermark, redact and OCR — all on your own computer.</Description>
+  </Properties>
+
+  <Dependencies>
+    <!-- 10.0.17763 (Windows 10 1809) is the floor for reliable WebView2 and
+         full-trust packaging. -->
+    <TargetDeviceFamily
+      Name="Windows.Desktop"
+      MinVersion="10.0.17763.0"
+      MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+  </Resources>
+
+  <Applications>
+    <Application
+      Id="folio"
+      Executable="folio.exe"
+      EntryPoint="Windows.FullTrustApplication">
+
+      <uap:VisualElements
+        DisplayName="Folio : Local PDF Studio"
+        Description="Free, fully offline PDF tools — merge, split, compress, protect, redact and OCR, all on your own computer."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile
+          Wide310x150Logo="Assets\Wide310x150Logo.png"
+          Square71x71Logo="Assets\Square71x71Logo.png"
+          Square310x310Logo="Assets\Square310x310Logo.png"
+          ShortName="folio" />
+      </uap:VisualElements>
+
+      <Extensions>
+        <!-- Offer folio in "Open with" for PDFs. It never steals the default
+             association; Windows asks the user. -->
+        <uap:Extension Category="windows.fileTypeAssociation">
+          <uap:FileTypeAssociation Name="pdf">
+            <uap:DisplayName>PDF document</uap:DisplayName>
+            <uap:Logo>Assets\Square44x44Logo.png</uap:Logo>
+            <uap:SupportedFileTypes>
+              <uap:FileType>.pdf</uap:FileType>
+            </uap:SupportedFileTypes>
+          </uap:FileTypeAssociation>
+        </uap:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <!-- Required for any packaged Win32 desktop app. Auto-approved by the
+         Store for desktop submissions; it grants no network access. -->
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

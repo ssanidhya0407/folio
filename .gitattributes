@@ -1,0 +1,11 @@
+# Normalise line endings so Windows and CI agree on file contents.
+* text=auto eol=lf
+
+# Binary assets must never be touched.
+*.png binary
+*.ico binary
+*.pdf binary
+*.traineddata binary
+
+# Keep PowerShell scripts CRLF — some older hosts require it.
+*.ps1 text eol=crlf

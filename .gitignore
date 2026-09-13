@@ -1,0 +1,19 @@
+/target
+**/target
+/pngtest
+/smoketest
+node_modules
+dist
+.DS_Store
+*.pdb
+src-tauri/target
+
+# Native engines fetched at build time (assets/fetch-runtime.py)
+src-tauri/runtime/
+
+# Partner Center identity for the Store package — account-specific
+msix/identity.json
+
+# Python bytecode from the asset scripts
+__pycache__/
+*.pyc

@@ -1,0 +1,15 @@
+[package]
+name = "pdf-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Command-line interface for the offline pdf-toolkit engine."
+
+[[bin]]
+name = "pdfx"
+path = "src/main.rs"
+
+[dependencies]
+pdf-core = { path = "../pdf-core" }
+clap = { version = "4", features = ["derive"] }

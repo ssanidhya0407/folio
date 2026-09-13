@@ -1,0 +1,8 @@
+{
+  "_comment": "Copy this to identity.json and replace every value with the ones from Partner Center -> your app -> Product management -> Product identity. identity.json is gitignored because these values identify your account, not the project. See SUBMISSION.md step 3.",
+
+  "name": "12345Publisher.FolioLocalPDFStudio",
+  "publisher": "CN=ABCDEF12-3456-7890-ABCD-EF1234567890",
+  "publisherDisplayName": "Your Publisher Name",
+  "version": "1.0.0.0"
+}

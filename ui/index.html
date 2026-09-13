@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>folio</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="workspace">
+      <!-- LEFT: files -->
+      <aside class="sidebar">
+        <div class="side-brand" id="home-link" role="button" tabindex="0" title="Home">
+          <svg class="mark" viewBox="0 0 44 54" aria-hidden="true">
+            <path d="M5 3 H30 L39 12 V49 a2 2 0 0 1 -2 2 H5 a2 2 0 0 1 -2 -2 V5 a2 2 0 0 1 2 -2 Z"
+                  fill="#fff" stroke="#2b2be0" stroke-width="3" stroke-linejoin="round" />
+            <path d="M30 3 L39 12 H30 Z" fill="#2b2be0" />
+            <text x="21" y="40" text-anchor="middle" font-size="11" font-weight="800"
+                  fill="#2b2be0" font-family="Arial, sans-serif">.pdf</text>
+          </svg>
+          <span class="wm wm-dark">folio</span>
+        </div>
+
+        <button class="open-btn" id="open-pdf">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/>
+            <line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+          Open PDF
+        </button>
+        <button class="open-images" id="open-images">+ Images</button>
+
+        <div class="side-label">Files</div>
+        <div class="file-list" id="file-list"></div>
+
+        <div class="side-foot">
+          <span class="offline-badge"><span class="dot"></span> 100% offline</span>
+          <button class="foot-note link" id="about-link">Free forever · Open source</button>
+        </div>
+      </aside>
+
+      <div class="splitter" id="split-left" title="Drag to resize"></div>
+
+      <!-- CENTER: viewer -->
+      <section class="viewer" id="viewer"></section>
+
+      <div class="splitter" id="split-right" title="Drag to resize"></div>
+
+      <!-- RIGHT: tools -->
+      <aside class="tools">
+        <div class="tools-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input id="tool-search" type="text" placeholder="Search tools…" />
+        </div>
+        <div class="tools-body" id="tools-body"></div>
+      </aside>
+    </div>
+
+    <div id="drag-overlay" class="drag-overlay">
+      <div class="drag-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        <span>Drop files to load</span>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="main.js"></script>
+  </body>
+</html>

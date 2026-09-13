@@ -1,0 +1,1 @@
+{"default":{"identifier":"default","description":"Core permissions for the main window. File dialogs are invoked from Rust, so no dialog JS permission is needed.","local":true,"windows":["main"],"permissions":["core:default"]}}

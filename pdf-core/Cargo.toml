@@ -1,0 +1,19 @@
+[package]
+name = "pdf-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "Offline PDF operations: merge, split, compress, image<->PDF, with parallel batch processing."
+
+[dependencies]
+lopdf = "0.34"
+printpdf = { version = "0.7", features = ["embedded_images"] }
+image = "0.24"
+rayon = "1.10"
+thiserror = "2"
+pdfium-render = "0.8"
+tempfile = "3"
+
+[dev-dependencies]
+tempfile = "3"

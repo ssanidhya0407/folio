@@ -1,0 +1,22 @@
+[package]
+name = "pdf-gui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+description = "folio — a free, fully-offline desktop PDF app (GUI)."
+
+[[bin]]
+name = "folio"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+pdf-core = { path = "../pdf-core" }
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+base64 = "0.22"
